@@ -1,0 +1,141 @@
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+class Bank {
+    int accNo;
+    string name;
+    float balance;
+
+public:
+    void createAccount() {
+        cout << "Enter Account Number: ";
+        cin >> accNo;
+        cout << "Enter Name: ";
+        cin >> name;
+        cout << "Enter Initial Balance: ";
+        cin >> balance;
+    }
+
+    void showAccount() {
+        cout << "Acc No: " << accNo 
+             << ", Name: " << name 
+             << ", Balance: " << balance << endl;
+    }
+
+    int getAccNo() {
+        return accNo;
+    }
+
+    void deposit() {
+        float amt;
+        cout << "Enter amount to deposit: ";
+        cin >> amt;
+        balance += amt;
+        cout << "Amount Deposited!\n";
+    }
+
+    void withdraw() {
+        float amt;
+        cout << "Enter amount to withdraw: ";
+        cin >> amt;
+        if (amt > balance) {
+            cout << "Insufficient Balance!\n";
+        } else {
+            balance -= amt;
+            cout << "Withdraw Successful!\n";
+        }
+    }
+};
+
+// Create account
+void create() {
+    Bank b;
+    ofstream file("bank.txt", ios::app);
+    b.createAccount();
+    file.write((char*)&b, sizeof(b));
+    file.close();
+    cout << "Account Created Successfully!\n";
+}
+
+// Display all accounts
+void display() {
+    Bank b;
+    ifstream file("bank.txt");
+    while (file.read((char*)&b, sizeof(b))) {
+        b.showAccount();
+    }
+    file.close();
+}
+
+// Search account
+void search() {
+    Bank b;
+    int acc;
+    cout << "Enter Account Number: ";
+    cin >> acc;
+
+    ifstream file("bank.txt");
+    while (file.read((char*)&b, sizeof(b))) {
+        if (b.getAccNo() == acc) {
+            b.showAccount();
+            file.close();
+            return;
+        }
+    }
+    cout << "Account not found!\n";
+    file.close();
+}
+
+// Deposit & Withdraw
+void transaction(bool isDeposit) {
+    Bank b;
+    int acc;
+    cout << "Enter Account Number: ";
+    cin >> acc;
+
+    fstream file("bank.txt", ios::in | ios::out);
+    while (file.read((char*)&b, sizeof(b))) {
+        if (b.getAccNo() == acc) {
+            if (isDeposit)
+                b.deposit();
+            else
+                b.withdraw();
+
+            int pos = -1 * sizeof(b);
+            file.seekp(pos, ios::cur);
+            file.write((char*)&b, sizeof(b));
+            file.close();
+            return;
+        }
+    }
+    cout << "Account not found!\n";
+    file.close();
+}
+
+int main() {
+    int choice;
+
+    do {
+        cout << "\n1. Create Account\n";
+        cout << "2. Display Accounts\n";
+        cout << "3. Search Account\n";
+        cout << "4. Deposit\n";
+        cout << "5. Withdraw\n";
+        cout << "6. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch(choice) {
+            case 1: create(); break;
+            case 2: display(); break;
+            case 3: search(); break;
+            case 4: transaction(true); break;
+            case 5: transaction(false); break;
+            case 6: cout << "Thank you!\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+    } while(choice != 6);
+
+    return 0;
+}
